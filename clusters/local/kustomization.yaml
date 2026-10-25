@@ -1,0 +1,8 @@
+# A k3d cluster on a workstation, set up by omegaweb-next's deploy/k3d/up.sh --argocd.
+# It has no cluster.yaml, since nothing local can get a Let's Encrypt certificate.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+    - root.yaml
+    - ../../platform
+    - omegaweb.yaml
