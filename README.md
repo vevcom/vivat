@@ -53,8 +53,6 @@ Argo CD then installs the operators and every service. Secrets that cannot come 
 made by hand once per cluster, as each service's README describes. For omegaweb those are the
 Phase service token and the pull secret for its images.
 
-Before the first prod deploy, set the issuer email in `cluster/cluster-issuer.yaml`.
-
 ## Trying it locally
 
 omegaweb-next's `deploy/k3d/up.sh --argocd` sets up a k3d cluster that follows
