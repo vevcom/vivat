@@ -1,3 +1,5 @@
+# The release of omegaweb-next that runs in prod. Its release workflow opens a pull request here
+# that sets the tag in all three places, and merging it is the deploy, see README.md.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -10,7 +12,11 @@ spec:
     source:
         repoURL: https://github.com/vevcom/omegaweb-next.git
         path: deploy/overlays/prod
-        targetRevision: main
+        targetRevision: v26.2.0
+        kustomize:
+            images:
+                - omegaweb-next=ghcr.io/vevcom/omegaweb-next:v26.2.0
+                - omegaweb-next-tools=ghcr.io/vevcom/omegaweb-next-tools:v26.2.0
     destination:
         server: https://kubernetes.default.svc
     syncPolicy:

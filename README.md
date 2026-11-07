@@ -16,22 +16,31 @@ cluster/        # Cluster-wide resources such as the Let's Encrypt issuer
 
 Each cluster has a root application that syncs its directory in `clusters/`, itself included.
 That directory lists one Argo CD `Application` per service. The service's own manifests stay
-in the service's repo, so a service is released from its repo without a change here:
+in the service's repo, and the `Application` here names the release of them that runs: it pins
+the repo to the release tag and sets the images to the same tag.
 
-| Service | Repo | Manifests |
-|---|---|---|
-| omegaweb | [omegaweb-next](https://github.com/vevcom/omegaweb-next) | `deploy/overlays/prod` |
+| Service | Repo | Manifests | Release named in |
+|---|---|---|---|
+| omegaweb | [omegaweb-next](https://github.com/vevcom/omegaweb-next) | `deploy/overlays/prod` | `clusters/prod/omegaweb.yaml` |
 
 Applications sync in waves: the operators and cluster resources in wave -1, the services in
 wave 0. Within a service, its own manifests decide the order, for example the database before
 the migrations before the app.
+
+## Releasing a service
+
+Publishing a GitHub release of omegaweb-next builds its images and opens a pull request here
+that sets the new tag in `clusters/prod/omegaweb.yaml`. Merging that pull request is the deploy,
+and a rollback is a revert of it. Nothing merged to main of a service repo reaches prod until a
+release names it, so a change to a service's manifests is tried on `clusters/local` first.
 
 ## Adding a service
 
 1. Give the service a `deploy/` directory in its repo with an overlay per cluster, as
    omegaweb-next has. It runs in its own namespace.
 2. Add an `Application` for it to `clusters/prod/` and `clusters/local/`, and list it in their
-   `kustomization.yaml`.
+   `kustomization.yaml`. In prod, pin `targetRevision` to a release tag and set the images under
+   `kustomize.images`, as `omegaweb.yaml` does.
 3. Secrets come from the service's own Phase app through a `PhaseSecret` in its manifests.
 4. A private repo needs credentials Argo CD can read it with. A GitHub App on the vevcom org,
    stored as a `repo-creds` secret for `https://github.com/vevcom`, covers every repo at once.
