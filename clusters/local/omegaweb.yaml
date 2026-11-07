@@ -1,4 +1,4 @@
-# Until the k3s setup is merged in omegaweb-next, its manifests only exist on this branch.
+# The branch of omegaweb-next to deploy. Set it to a pushed branch to try its manifests.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -11,7 +11,7 @@ spec:
     source:
         repoURL: https://github.com/vevcom/omegaweb-next.git
         path: deploy/overlays/local
-        targetRevision: feat/argocd-k3s
+        targetRevision: main
     destination:
         server: https://kubernetes.default.svc
     syncPolicy:
