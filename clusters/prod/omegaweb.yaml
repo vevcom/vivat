@@ -12,11 +12,11 @@ spec:
     source:
         repoURL: https://github.com/vevcom/omegaweb-next.git
         path: deploy/overlays/prod
-        targetRevision: v26.2.0
+        targetRevision: v26.2.1
         kustomize:
             images:
-                - omegaweb-next=ghcr.io/vevcom/omegaweb-next:v26.2.0
-                - omegaweb-next-tools=ghcr.io/vevcom/omegaweb-next-tools:v26.2.0
+                - omegaweb-next=ghcr.io/vevcom/omegaweb-next:v26.2.1
+                - omegaweb-next-tools=ghcr.io/vevcom/omegaweb-next-tools:v26.2.1
     destination:
         server: https://kubernetes.default.svc
     syncPolicy:
