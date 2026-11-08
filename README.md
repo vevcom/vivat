@@ -29,10 +29,13 @@ the migrations before the app.
 
 ## Releasing a service
 
-Publishing a GitHub release of omegaweb-next builds its images and opens a pull request here
-that sets the new tag in `clusters/prod/omegaweb.yaml`. Merging that pull request is the deploy,
-and a rollback is a revert of it. Nothing merged to main of a service repo reaches prod until a
-release names it, so a change to a service's manifests is tried on `clusters/local` first.
+Services come from two kinds of repo: one with a repo of its own, such as
+[omegaweb-next](https://github.com/vevcom/omegaweb-next), and the rest from
+[infra](https://github.com/vevcom/infra), one directory per service. Publishing a GitHub release
+of either builds its images and opens a pull request here that sets the new tag in its
+`Application`s under `clusters/prod/`. Merging that pull request is the deploy, and a rollback is
+a revert of it. Nothing merged to main of a service repo reaches prod until a release names it, so
+a change to a service's manifests is tried on `clusters/local` first.
 
 ## Adding a service
 
