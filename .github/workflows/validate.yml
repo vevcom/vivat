@@ -15,10 +15,11 @@ jobs:
     - name: install kubeconform
       run: |
         curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz kubeconform
-    # CRD schemas such as Application and ClusterIssuer come from the datree catalog.
+    # CRD schemas such as Application and ClusterIssuer come from the datree catalog. The service
+    # overlays pull their bases from the service repos, at the ref each names.
     - name: validate
       run: |
-        for dir in clusters/* cluster platform; do
+        for dir in clusters/* clusters/prod/*/ cluster platform; do
           echo "::group::$dir"
           kustomize build "$dir" | ./kubeconform -strict -summary \
             -schema-location default \
