@@ -100,13 +100,17 @@ operator does not restart the app, so after changing a secret in Phase run
 The sites' domains are in `clusters/prod/omegaweb/sites.json`, which every pod mounts and none
 start without. A changed file rolls the pods. Every host in it, aliases included, is also in
 `ingress-patch.yaml`, which routes it and lists it on the certificate; the two files must agree.
+A new domain is also registered at Feide as `https://<domain>/api/auth/callback/feide`, since
+NextAuth serves every domain itself.
 
 ### The store
 
 Uploaded images, ombul pdfs and the release countdown's files go to the S3 bucket in
 `kustomization.yaml`, on NTNU's object storage at `https://s3.trd1.stack.it.ntnu.no`, with keys
-from Phase. Turn on versioning for the bucket, so a deleted file can be brought back after a
-database restore:
+from Phase: EC2 credentials from `openstack ec2 credentials create`, as `STORE_S3_ACCESS_KEY_ID`
+and `STORE_S3_SECRET_ACCESS_KEY`. The database backups in `database-patch.yaml` use the same keys,
+since EC2 keys reach every bucket in the project. Turn on versioning for the bucket, so a deleted
+file can be brought back after a database restore:
 
 ```bash
 aws s3api put-bucket-versioning --bucket <bucket> --versioning-configuration Status=Enabled \
@@ -116,42 +120,13 @@ aws s3api put-bucket-versioning --bucket <bucket> --versioning-configuration Sta
 NTNU does not back the bucket up, so copy it somewhere else nightly with `rclone copy`.
 Use `copy`, not `sync`, so deletes never reach the copy.
 
-### Moving production off Dokploy
+### Releases
 
-1. **Install k3s on the Debian box.** Dokploy holds ports 80 and 443 through Traefik on Docker
-   Swarm, so either use a fresh VM or plan a short outage for the switch.
-2. **Install Argo CD** with Helm, as above.
-3. **Fill in the TODOs.** Check that `sites.json` and `ingress-patch.yaml` list the same hosts.
-   Set the backup bucket in `database-patch.yaml`, the store bucket in `kustomization.yaml` and
-   the Phase app id in `phase-secret.yaml`.
-4. **Set up S3.** Create the store and backup buckets on stack.it, turn on versioning for the
-   store, and make keys with `openstack ec2 credentials create`. Add the store keys to Phase as
-   `STORE_S3_ACCESS_KEY_ID` and `STORE_S3_SECRET_ACCESS_KEY`. The database backups use the same
-   keys, since EC2 keys reach every bucket in the project.
-5. **Create the hand-made secrets**, as above.
-6. **Set up GitHub.** In omegaweb-next, add the secret `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` and
-   the variable `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, keep both GHCR packages private, and add the
-   deploy app's `DEPLOY_APP_ID` and `DEPLOY_APP_PRIVATE_KEY`.
-7. **Bootstrap Argo CD** from this repo, as above. First publish a release of omegaweb-next,
-   deploy that same release to Dokploy and merge the pull request `release.yml` opens here. The
-   restore below replaces the migration history along with the schema, so both sides must run the
-   same release.
-8. **Move the data.** Stop the Dokploy stack and dump its database. The migrate job has already
-   created and seeded the new database, and the workers are running against it, so the restore
-   replaces everything in one transaction. If it fails, nothing has changed.
-
-   ```bash
-   docker exec <dokploy db container> pg_dump -Fc -U <user> <database> > omegaweb-next.dump
-   uri=$(kubectl -n omegaweb-next get secret omegaweb-next-db-app -o jsonpath='{.data.uri}' | base64 -d)
-   kubectl -n omegaweb-next exec -i omegaweb-next-db-1 -c postgres -- \
-       pg_restore --clean --if-exists --no-owner --no-privileges --single-transaction -d "$uri" \
-       < omegaweb-next.dump
-   ```
-
-   Copy the `store` volume to the bucket with `rclone copy <store volume> s3:<bucket>`. Then point
-   DNS for every host in `sites.json` at the new box, since one host that does not resolve there
-   keeps the shared certificate from being issued. Register
-   `https://<domain>/api/auth/callback/feide` at Feide for each domain.
+`release.yml` in omegaweb-next builds the images with the repository secret
+`NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` and the variable `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and
+opens the pull request here with the deploy app's `DEPLOY_APP_ID` and `DEPLOY_APP_PRIVATE_KEY`.
+Both GHCR packages stay private, since the server actions key is inside the images; the pods pull
+with the `ghcr-pull` secret made by hand above.
 
 ## mail
 
