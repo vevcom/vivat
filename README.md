@@ -100,8 +100,15 @@ operator does not restart the app, so after changing a secret in Phase run
 The sites' domains are in `clusters/prod/omegaweb/sites.json`, which every pod mounts and none
 start without. A changed file rolls the pods. Every host in it, aliases included, is also in
 `ingress-patch.yaml`, which routes it and lists it on the certificate; the two files must agree.
-A new domain is also registered at Feide as `https://<domain>/api/auth/callback/feide`, since
-NextAuth serves every domain itself.
+Each host has an A record pointing at the node, like the others.
+
+`login.omega.ntnu.no` is the auth domain, the entry marked `"auth": true`: everyone signs in
+there, and every site's domain gets its own session from it through the app's OpenID Connect
+provider, see omegaweb-next's README. It belongs to no site and serves nothing but the sign in,
+sign up and password pages. So Feide is registered once, as
+`https://login.omega.ntnu.no/api/auth/callback/feide`, and a new site domain needs nothing at
+Feide. Until the entry is live, with its A record, omega.ntnu.no signs users in, which the app
+does on its own when the file marks no auth domain.
 
 ### The store
 

@@ -5,7 +5,8 @@ metadata:
     annotations:
         cert-manager.io/cluster-issuer: letsencrypt
         traefik.ingress.kubernetes.io/router.middlewares: omegaweb-next-redirect-https@kubernetescrd
-# Every host in sites.json, aliases included, since the app sends aliases on itself.
+# Every host in sites.json, aliases included, since the app sends aliases on itself, and the auth
+# domain, where everyone signs in.
 spec:
     tls:
         - hosts:
@@ -15,6 +16,7 @@ spec:
               - www.contactor.omega.ntnu.no
               - revyen.omega.ntnu.no
               - www.revyen.omega.ntnu.no
+              - login.omega.ntnu.no
           secretName: omegaweb-next-tls
     rules:
         - host: omega.ntnu.no
@@ -68,6 +70,16 @@ spec:
                             port:
                                 name: http
         - host: www.revyen.omega.ntnu.no
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: omegaweb-next
+                            port:
+                                name: http
+        - host: login.omega.ntnu.no
           http:
               paths:
                   - path: /
