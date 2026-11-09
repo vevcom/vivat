@@ -138,12 +138,15 @@ with the `ghcr-pull` secret made by hand above.
 ## mail
 
 [Stalwart](https://stalw.art) receives the mail for omega.ntnu.no, forwards each alias to the
-members omegaweb-next lists behind it, sends what the app sends, and keeps mailboxes, which the
-[Bulwark](https://bulwarkmail.org) webmail at `webmail.omega.ntnu.no` shows. What that is in
-Kubernetes is mail-infrastructure's `deploy/base`; `clusters/prod/mail` is our installation of it.
+members omegaweb-next lists behind it, sends what the app sends, and keeps a mailbox per alias,
+which the [Bulwark](https://bulwarkmail.org) webmail at `webmail.omega.ntnu.no` shows to those who
+receive the alias's mail, signed in with their omegaweb-next account. What that is in Kubernetes
+is mail-infrastructure's `deploy/base`; `clusters/prod/mail` is our installation of it.
 `site.ndjson` there is the plan the provision job applies after the base one: the domain, the
 hostname `mail.omega.ntnu.no`, the certificate from the files cert-manager writes, NTNU's gateway
-as the relay for outbound mail, and that omegaweb-next's account may send as its aliases.
+as the relay for outbound mail, that omegaweb-next's account may send as its aliases, the
+webmail's host as the domain of the mailboxes, and the directory that signs users in through
+omegaweb-next, see [Signing in and mailboxes](#signing-in-and-mailboxes).
 
 ### Secrets
 
@@ -167,6 +170,31 @@ EMAIL_ADMIN_URL=http://stalwart.mail.svc.cluster.local:8080
 EMAIL_ADMIN_USER=admin
 EMAIL_ADMIN_PASSWORD=<STALWART_ADMIN_PASSWORD>
 ```
+
+`EMAIL_WEBMAIL_URL` is no secret and is set in `clusters/prod/omegaweb/kustomization.yaml`
+instead, see below.
+
+### Signing in and mailboxes
+
+Stalwart authenticates against omegaweb-next, which is an OpenID Connect provider on
+`login.omega.ntnu.no`, see [Domains](#domains): `site.ndjson` defines the directory and makes it
+the one authentication uses, and `bulwark-config` tells the webmail the same issuer. So the webmail
+signs you in with your omegaweb-next account, and shows you the mailboxes of the aliases you
+receive mail on: the token you sign in with lists them, and Stalwart makes you a member of exactly
+those groups at every sign in. Owning an alias in omegaweb-next is administering it and gives no
+mailbox; the alias's owners may switch its mailbox off there.
+
+The webmail's host, `webmail.omega.ntnu.no`, is four things at once, and the four places must
+agree: the domain the mailboxes and the signed-in accounts are on (`usernameDomain` and the
+mailbox domain in `site.ndjson`), the client omegaweb-next issues the webmail's tokens to
+(`OAUTH_CLIENT_ID` and `acceptedAudiences`), and omegaweb-next's `EMAIL_WEBMAIL_URL` in
+`clusters/prod/omegaweb`, from which it derives all of that. The mailbox of `styret@omega.ntnu.no`
+is the group `styret@webmail.omega.ntnu.no`.
+
+Once the directory is active, Stalwart sends every password login to it, and omegaweb-next has no
+passwords to give: a mail client signs in with an app password made in the webmail, and the
+recovery admin with its own. omegaweb-next's own account is affected like any other; how it
+authenticates then is in its README.
 
 ### DNS
 
@@ -199,8 +227,8 @@ already exists at `p=none`.
 4. **Point omegaweb-next at it**, with the variables above, and check in Stalwart's admin ui that
    its account and a list per alias appear within a minute.
 5. **Try it**: send a mail to an alias straight at the node, `swaks --server <node ip> --to
-   <alias>@omega.ntnu.no`, from a machine the security group allows, and see it forwarded. Log in
-   to the webmail as `omegaweb@omega.ntnu.no`.
+   <alias>@omega.ntnu.no`, from a machine the security group allows, and see it forwarded. Sign in
+   to the webmail with your own account and find it in the alias's mailbox.
 6. **Switch**: move the A record of `sanctus.omega.ntnu.no` to the node, then stop the Postfix
    stack on Dokploy. The gateways remember a recipient they could not deliver to for a few hours,
    so do it when no alias is being edited.
