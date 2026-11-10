@@ -163,6 +163,7 @@ through the server, so its Phase app has these, next to its other variables:
 EMAIL_SERVER=stalwart.mail.svc.cluster.local
 EMAIL_PORT=2525                           # the listener for the application, which asks for no login
 EMAIL_SECURE=false
+EMAIL_TLS_SERVERNAME=mail.omega.ntnu.no   # the name on the server's certificate, which it is verified by
 EMAIL_ADMIN_URL=http://stalwart.mail.svc.cluster.local:8080
 EMAIL_ADMIN_USER=admin
 EMAIL_ADMIN_PASSWORD=<STALWART_ADMIN_PASSWORD>
