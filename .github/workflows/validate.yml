@@ -16,12 +16,13 @@ jobs:
       run: |
         curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz kubeconform
     # CRD schemas such as Application and ClusterIssuer come from the datree catalog. The service
-    # overlays pull their bases from the service repos, at the ref each names.
+    # overlays pull their bases from the service repos, at the ref each names. PhaseSecret is
+    # skipped, since the catalog has no schema for it, as omegaweb-next's own workflow does.
     - name: validate
       run: |
         for dir in clusters/* clusters/prod/*/ cluster platform; do
           echo "::group::$dir"
-          kustomize build "$dir" | ./kubeconform -strict -summary \
+          kustomize build "$dir" | ./kubeconform -strict -summary -skip PhaseSecret \
             -schema-location default \
             -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
           echo "::endgroup::"
