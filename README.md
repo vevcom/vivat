@@ -144,7 +144,7 @@ receive the alias's mail, signed in with their omegaweb-next account. What that 
 is mail-infrastructure's `deploy/base`; `clusters/prod/mail` is our installation of it.
 `site.ndjson` there is the plan the provision job applies after the base one: the domain, the
 hostname `mail.omega.ntnu.no`, the certificate from the files cert-manager writes, NTNU's gateway
-as the relay for outbound mail, the webmail's host as the domain of the mailboxes, and the
+as the relay for outbound mail, the webmail's host as the domain of the accounts, and the
 directory that signs users in through omegaweb-next, see
 [Signing in and mailboxes](#signing-in-and-mailboxes).
 
@@ -191,16 +191,18 @@ Stalwart authenticates against omegaweb-next, which is an OpenID Connect provide
 `login.omega.ntnu.no`, see [Domains](#domains): `site.ndjson` defines the directory and makes it
 the one authentication uses, and `bulwark-config` tells the webmail the same issuer. So the webmail
 signs you in with your omegaweb-next account, and shows you the mailboxes of the aliases you
-receive mail on: the token you sign in with lists them, and Stalwart makes you a member of exactly
-those groups at every sign in. Owning an alias in omegaweb-next is administering it and gives no
-mailbox; the alias's owners may switch its mailbox off there.
+receive mail on. The token you sign in with only says who you are: omegaweb-next's sync makes your
+account a member of those mailboxes, every minute, so `site.ndjson` tells Stalwart to read no
+groups from the token (`claimGroups` null). Owning an alias in omegaweb-next is administering it
+and gives no mailbox.
 
-The webmail's host, `webmail.omega.ntnu.no`, is four things at once, and the four places must
-agree: the domain the mailboxes and the signed-in accounts are on (`usernameDomain` and the
-mailbox domain in `site.ndjson`), the client omegaweb-next issues the webmail's tokens to
-(`OAUTH_CLIENT_ID` and `acceptedAudiences`), and omegaweb-next's `EMAIL_WEBMAIL_URL` in
-`clusters/prod/omegaweb`, from which it derives all of that. The mailbox of `styret@omega.ntnu.no`
-is the group `styret@webmail.omega.ntnu.no`.
+The webmail's host, `webmail.omega.ntnu.no`, is three things at once, and the places must agree:
+the domain the signed-in accounts are on (`usernameDomain` and the accounts' domain in
+`site.ndjson`), the client omegaweb-next issues the webmail's tokens to (`OAUTH_CLIENT_ID` and
+`acceptedAudiences`), and omegaweb-next's `EMAIL_WEBMAIL_URL` in `clusters/prod/omegaweb`, from
+which it derives all of that. The mailbox of `styret@omega.ntnu.no` is a group at that same
+address, and what forwards its mail is a list on `forward.webmail.omega.ntnu.no`, a domain
+omegaweb-next makes on the server and which has no DNS.
 
 Once the directory is active, Stalwart sends every password login to it, and omegaweb-next has no
 passwords to give: a mail client signs in with an app password made in the webmail, and the

@@ -22,7 +22,7 @@ configMapGenerator:
           annotations:
               argocd.argoproj.io/sync-wave: "-3"
     # The store keys, STORE_S3_ACCESS_KEY_ID and STORE_S3_SECRET_ACCESS_KEY, come from Phase. The
-    # webmail is the one in clusters/prod/mail: its host is the domain of the aliases' mailboxes
+    # webmail is the one in clusters/prod/mail: its host is the domain of the accounts that sign in
     # and the client the app issues tokens to, so it is the same host as there, see README.md.
     - name: omegaweb-next-config
       behavior: merge
