@@ -142,11 +142,19 @@ members omegaweb-next lists behind it, sends what the app sends, and keeps a mai
 which the [Bulwark](https://bulwarkmail.org) webmail at `mail.omega.ntnu.no` shows to those who
 receive the alias's mail, signed in with their omegaweb-next account. What that is in Kubernetes
 is mail-infrastructure's `deploy/base`; `clusters/prod/mail` is our installation of it.
-`site.ndjson` there is the plan the provision job applies after the base one: the domain, the
+`site.ndjson` there is the plan the provision job applies after the base one: the domains, the
 hostname `sanctus.omega.ntnu.no`, the certificate from the files cert-manager writes, NTNU's gateway
 as the relay for outbound mail, the webmail's host as the domain of the accounts, and the
 directory that signs users in through omegaweb-next, see
 [Signing in and mailboxes](#signing-in-and-mailboxes).
+
+### Domains
+
+omegaweb-next creates no domain on the mail server. `site.ndjson` holds them all: the mail domain
+of every site in `clusters/prod/omegaweb/sites.json`, `mail.omega.ntnu.no` for the accounts that
+sign in, and `forward.mail.omega.ntnu.no` for the lists the mailboxes forward to. A new site with
+mail is a line in both files, in the pull request that adds its DNS records. omegaweb-next skips
+the aliases on a site domain the server lacks, and its worker's log says which every minute.
 
 ### Secrets
 
@@ -202,8 +210,8 @@ the domain the signed-in accounts are on (`usernameDomain` and the accounts' dom
 `site.ndjson`), the client omegaweb-next issues the webmail's tokens to (`OAUTH_CLIENT_ID` and
 `acceptedAudiences`), and omegaweb-next's `EMAIL_WEBMAIL_URL` in `clusters/prod/omegaweb`, from
 which it derives all of that. The mailbox of `styret@omega.ntnu.no` is a group at that same
-address, and what forwards its mail is a list on `forward.mail.omega.ntnu.no`, a domain
-omegaweb-next makes on the server and which has no DNS. `site.ndjson` has Stalwart refuse mail
+address, and what forwards its mail is a list on `forward.mail.omega.ntnu.no`, a domain for
+those lists alone, which has no DNS. `site.ndjson` has Stalwart refuse mail
 for that domain from anyone not signed in, so only the copies the mailboxes send on reach those
 lists. mail-infrastructure's base plan has it refuse a mail from someone signed in whose From
 header is not the address it is sent as, so a member of a mailbox answers as that mailbox and as
