@@ -1,9 +1,9 @@
 # Mail for omega.ntnu.no: mail-infrastructure's base at the release named in the ref, which
 # release.yml there moves through a pull request, plus everything about this installation. The
 # base plan is applied first, then site.ndjson: the domain, the hostname, the certificate from the
-# files cert-manager writes, NTNU's gateway as the relay, that omegaweb-next's account may send as
-# its aliases, the webmail's host as the domain of the mailboxes, and the directory that signs
-# users in through omegaweb-next.
+# files cert-manager writes, NTNU's gateway as the relay, the webmail's host as the domain of the
+# mailboxes, and the directory that signs users in through omegaweb-next. application-listener.yaml
+# keeps all but omegaweb-next away from the port it sends through.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -15,6 +15,7 @@ resources:
     - https://github.com/vevcom/mail-infrastructure//deploy/base?ref=main
     - phase-secret.yaml
     - redirect-https.yaml
+    - application-listener.yaml
 
 configMapGenerator:
     - name: stalwart-plan

@@ -144,9 +144,9 @@ receive the alias's mail, signed in with their omegaweb-next account. What that 
 is mail-infrastructure's `deploy/base`; `clusters/prod/mail` is our installation of it.
 `site.ndjson` there is the plan the provision job applies after the base one: the domain, the
 hostname `mail.omega.ntnu.no`, the certificate from the files cert-manager writes, NTNU's gateway
-as the relay for outbound mail, that omegaweb-next's account may send as its aliases, the
-webmail's host as the domain of the mailboxes, and the directory that signs users in through
-omegaweb-next, see [Signing in and mailboxes](#signing-in-and-mailboxes).
+as the relay for outbound mail, the webmail's host as the domain of the mailboxes, and the
+directory that signs users in through omegaweb-next, see
+[Signing in and mailboxes](#signing-in-and-mailboxes).
 
 ### Secrets
 
@@ -156,19 +156,30 @@ sync log in with. The operator writes it to the `mail-env` secret as set up in `
 
 ### The application
 
-omegaweb-next keeps the server's mailing lists and its own account in step with its aliases, so
-its Phase app has these, next to its other variables:
+omegaweb-next keeps the server's mailing lists in step with its aliases and sends its mail
+through the server, so its Phase app has these, next to its other variables:
 
 ```
 EMAIL_SERVER=stalwart.mail.svc.cluster.local
-EMAIL_PORT=465
-EMAIL_SECURE=true
-EMAIL_TLS_ALLOW_SELF_SIGNED=true          # the certificate is for mail.omega.ntnu.no, not the service name
-EMAIL_USER=omegaweb@omega.ntnu.no         # the account it creates and sends through, named in site.ndjson
-EMAIL_PASSWORD=<openssl rand -base64 24>
+EMAIL_PORT=2525                           # the listener for the application, which asks for no login
+EMAIL_SECURE=false
 EMAIL_ADMIN_URL=http://stalwart.mail.svc.cluster.local:8080
 EMAIL_ADMIN_USER=admin
 EMAIL_ADMIN_PASSWORD=<STALWART_ADMIN_PASSWORD>
+```
+
+It has no account on the server and so no `EMAIL_USER` or `EMAIL_PASSWORD`: the directory below
+could not sign one in. mail-infrastructure's base plan gives Stalwart a listener on port 2525 that
+relays as any address without a login, on the service inside the cluster alone, and
+`clusters/prod/mail/application-listener.yaml` lets only omegaweb-next's namespace reach it. That
+policy is the whole of the port's security, and it holds because k3s enforces NetworkPolicy; a
+cluster set up with `--disable-network-policy` would leave the port open to every pod.
+
+Stalwart opens a listener when it starts. After the first sync of the release that brings the
+listener, restart it once, or nothing answers on 2525:
+
+```bash
+kubectl -n mail rollout restart statefulset/stalwart
 ```
 
 `EMAIL_WEBMAIL_URL` is no secret and is set in `clusters/prod/omegaweb/kustomization.yaml`
@@ -193,8 +204,8 @@ is the group `styret@webmail.omega.ntnu.no`.
 
 Once the directory is active, Stalwart sends every password login to it, and omegaweb-next has no
 passwords to give: a mail client signs in with an app password made in the webmail, and the
-recovery admin with its own. omegaweb-next's own account is affected like any other; how it
-authenticates then is in its README.
+recovery admin with its own. omegaweb-next sends without signing in, see
+[The application](#the-application).
 
 ### DNS
 
