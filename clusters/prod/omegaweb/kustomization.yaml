@@ -29,7 +29,7 @@ configMapGenerator:
       literals:
           - STORE_S3_ENDPOINT=https://s3.trd1.stack.it.ntnu.no
           - STORE_S3_BUCKET=argo-prod-bucket
-          - EMAIL_WEBMAIL_URL=https://webmail.omega.ntnu.no
+          - EMAIL_WEBMAIL_URL=https://mail.omega.ntnu.no
 
 images:
     - name: omegaweb-next

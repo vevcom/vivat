@@ -27,9 +27,9 @@ configMapGenerator:
     - name: bulwark-config
       behavior: merge
       literals:
-          - JMAP_SERVER_URL=https://mail.omega.ntnu.no
+          - JMAP_SERVER_URL=https://sanctus.omega.ntnu.no
           - OAUTH_ISSUER_URL=https://login.omega.ntnu.no
-          - OAUTH_CLIENT_ID=webmail.omega.ntnu.no
+          - OAUTH_CLIENT_ID=mail.omega.ntnu.no
 
 patches:
     - target:
@@ -63,11 +63,11 @@ patches:
       patch: |-
           - op: replace
             path: /spec/rules/0/host
-            value: mail.omega.ntnu.no
+            value: sanctus.omega.ntnu.no
           - op: add
             path: /spec/tls
             value:
-                - hosts: [mail.omega.ntnu.no]
+                - hosts: [sanctus.omega.ntnu.no]
                   secretName: stalwart-tls
           - op: add
             path: /metadata/annotations
@@ -80,11 +80,11 @@ patches:
       patch: |-
           - op: replace
             path: /spec/rules/0/host
-            value: webmail.omega.ntnu.no
+            value: mail.omega.ntnu.no
           - op: add
             path: /spec/tls
             value:
-                - hosts: [webmail.omega.ntnu.no]
+                - hosts: [mail.omega.ntnu.no]
                   secretName: bulwark-tls
           - op: add
             path: /metadata/annotations
