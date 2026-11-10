@@ -6,4 +6,5 @@
 {"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"mailboxes":{"name":"webmail.omega.ntnu.no","description":"The webmail's host: the domain of the accounts that sign in through omegaweb-next"}}}
 {"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"omegaweb":{"@type":"Oidc","description":"omegaweb-next signs users in","issuerUrl":"https://login.omega.ntnu.no","claimUsername":"preferred_username","usernameDomain":"webmail.omega.ntnu.no","claimName":"name","claimGroups":null,"acceptedAudiences":{"webmail.omega.ntnu.no":true}}}}
 {"@type":"update","object":"Authentication","value":{"directoryId":"#omegaweb"}}
+{"@type":"update","object":"MtaStageRcpt","value":{"script":{"match":{"0":{"if":"is_empty(authenticated_as) && rcpt_domain == 'forward.webmail.omega.ntnu.no'","then":"'refuse-recipient'"}},"else":"false"}}}
 {"@type":"create","object":"Action","value":{"reload":{"@type":"ReloadSettings"}}}

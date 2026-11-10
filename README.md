@@ -202,7 +202,11 @@ the domain the signed-in accounts are on (`usernameDomain` and the accounts' dom
 `acceptedAudiences`), and omegaweb-next's `EMAIL_WEBMAIL_URL` in `clusters/prod/omegaweb`, from
 which it derives all of that. The mailbox of `styret@omega.ntnu.no` is a group at that same
 address, and what forwards its mail is a list on `forward.webmail.omega.ntnu.no`, a domain
-omegaweb-next makes on the server and which has no DNS.
+omegaweb-next makes on the server and which has no DNS. `site.ndjson` has Stalwart refuse mail
+for that domain from anyone not signed in, so only the copies the mailboxes send on reach those
+lists. mail-infrastructure's base plan has it refuse a mail from someone signed in whose From
+header is not the address it is sent as, so a member of a mailbox answers as that mailbox and as
+no one else.
 
 Once the directory is active, Stalwart sends every password login to it, and omegaweb-next has no
 passwords to give: a mail client signs in with an app password made in the webmail, and the
