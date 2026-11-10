@@ -12,7 +12,7 @@ namespace: mail
 resources:
     - namespace.yaml
     # TODO: the first release of mail-infrastructure, once it is published.
-    - https://github.com/vevcom/mail-infrastructure//deploy/base?ref=main
+    - https://github.com/vevcom/mail-infrastructure//deploy/base?ref=v26.1.0
     - phase-secret.yaml
     - redirect-https.yaml
     - application-listener.yaml
