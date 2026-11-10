@@ -1,5 +1,5 @@
 {"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"dom":{"name":"omega.ntnu.no","description":"Omega's mail domain. The aliases on it are omegaweb-next's lists."}}}
-{"@type":"upsert","object":"Certificate","matchOn":["subjectAlternativeNames"],"value":{"cert":{"certificate":{"@type":"File","filePath":"/etc/stalwart/tls/tls.crt"},"privateKey":{"@type":"File","filePath":"/etc/stalwart/tls/tls.key"}}}}
+{"@type":"upsert","object":"Certificate","matchOn":["certificate"],"value":{"cert":{"certificate":{"@type":"File","filePath":"/etc/stalwart/tls/tls.crt"},"privateKey":{"@type":"File","filePath":"/etc/stalwart/tls/tls.key"}}}}
 {"@type":"update","object":"SystemSettings","value":{"defaultHostname":"sanctus.omega.ntnu.no","defaultDomainId":"#dom","defaultCertificateId":"#cert"}}
 {"@type":"upsert","object":"MtaRoute","matchOn":["name"],"value":{"mailgw":{"@type":"Relay","name":"mailgw","description":"NTNU's mail gateway relays for the whole of NTNU's network by source address","host":"mailgw.ntnu.no","port":25,"implicitTls":false,"allowInvalidCerts":false}}}
 {"@type":"update","object":"MtaOutboundStrategy","value":{"route":{"match":{"0":{"if":"is_local_domain(rcpt_domain)","then":"'local'"}},"else":"'mailgw'"}}}
