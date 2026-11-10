@@ -5,6 +5,6 @@
 {"@type":"update","object":"MtaOutboundStrategy","value":{"route":{"match":{"0":{"if":"is_local_domain(rcpt_domain)","then":"'local'"}},"else":"'mailgw'"}}}
 {"@type":"update","object":"MtaStageAuth","value":{"mustMatchSender":{"match":{"0":{"if":"authenticated_as == 'omegaweb@omega.ntnu.no'","then":"false"}},"else":"true"}}}
 {"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"mailboxes":{"name":"webmail.omega.ntnu.no","description":"The webmail's host: the domain of the aliases' mailboxes and of the accounts that sign in through omegaweb-next"}}}
-{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"omegaweb":{"@type":"Oidc","description":"omegaweb-next signs users in","issuerUrl":"https://login.omega.ntnu.no","claimUsername":"preferred_username","usernameDomain":"webmail.omega.ntnu.no","claimName":"name","claimGroups":"groups","acceptedAudiences":["webmail.omega.ntnu.no"]}}}
+{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"omegaweb":{"@type":"Oidc","description":"omegaweb-next signs users in","issuerUrl":"https://login.omega.ntnu.no","claimUsername":"preferred_username","usernameDomain":"webmail.omega.ntnu.no","claimName":"name","claimGroups":"groups","acceptedAudiences":{"webmail.omega.ntnu.no":true}}}}
 {"@type":"update","object":"Authentication","value":{"directoryId":"#omegaweb"}}
 {"@type":"create","object":"Action","value":{"reload":{"@type":"ReloadSettings"}}}
