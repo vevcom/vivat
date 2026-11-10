@@ -1,0 +1,93 @@
+# Mail for omega.ntnu.no: mail-infrastructure's base at the release named in the ref, which
+# release.yml there moves through a pull request, plus everything about this installation. The
+# base plan is applied first, then site.ndjson: the domain, the hostname, the certificate from the
+# files cert-manager writes, NTNU's gateway as the relay, the webmail's host as the domain of the
+# accounts, and the directory that signs users in through omegaweb-next. application-listener.yaml
+# keeps all but omegaweb-next away from the port it sends through.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mail
+
+resources:
+    - namespace.yaml
+    # TODO: the first release of mail-infrastructure, once it is published.
+    - https://github.com/vevcom/mail-infrastructure//deploy/base?ref=main
+    - phase-secret.yaml
+    - redirect-https.yaml
+    - application-listener.yaml
+
+configMapGenerator:
+    - name: stalwart-plan
+      behavior: merge
+      files:
+          - 20-site.ndjson=site.ndjson
+    # Browsers reach Stalwart's JMAP api through its ingress, and sign in through omegaweb-next on
+    # the auth domain, as the client named by the webmail's own host, see README.md.
+    - name: bulwark-config
+      behavior: merge
+      literals:
+          - JMAP_SERVER_URL=https://sanctus.omega.ntnu.no
+          - OAUTH_ISSUER_URL=https://login.omega.ntnu.no
+          - OAUTH_CLIENT_ID=mail.omega.ntnu.no
+
+patches:
+    - target:
+          kind: Job
+          name: stalwart-provision
+      patch: |-
+          - op: add
+            path: /spec/template/spec/initContainers/-
+            value:
+                name: apply-site
+                image: stalwartlabs/cli:1.0.14
+                args: [apply, --file, /plan/20-site.ndjson]
+                envFrom:
+                    - configMapRef:
+                          name: stalwart-cli
+                env:
+                    - name: STALWART_PASSWORD
+                      valueFrom:
+                          secretKeyRef:
+                              name: mail-env
+                              key: STALWART_ADMIN_PASSWORD
+                volumeMounts:
+                    - name: plan
+                      mountPath: /plan
+                      readOnly: true
+    # The certificate cert-manager issues for the ingress is the one Stalwart serves on the mail
+    # ports too: the base mounts the stalwart-tls secret, and site.ndjson points at the files.
+    - target:
+          kind: Ingress
+          name: stalwart
+      patch: |-
+          - op: replace
+            path: /spec/rules/0/host
+            value: sanctus.omega.ntnu.no
+          - op: add
+            path: /spec/tls
+            value:
+                - hosts: [sanctus.omega.ntnu.no]
+                  secretName: stalwart-tls
+          - op: add
+            path: /metadata/annotations
+            value:
+                cert-manager.io/cluster-issuer: letsencrypt
+                traefik.ingress.kubernetes.io/router.middlewares: mail-redirect-https@kubernetescrd
+    - target:
+          kind: Ingress
+          name: bulwark
+      patch: |-
+          - op: replace
+            path: /spec/rules/0/host
+            value: mail.omega.ntnu.no
+          - op: add
+            path: /spec/tls
+            value:
+                - hosts: [mail.omega.ntnu.no]
+                  secretName: bulwark-tls
+          - op: add
+            path: /metadata/annotations
+            value:
+                cert-manager.io/cluster-issuer: letsencrypt
+                traefik.ingress.kubernetes.io/router.middlewares: mail-redirect-https@kubernetescrd

@@ -1,3 +1,5 @@
+# omega.ntnu.no and its sites: the overlay in clusters/prod/omegaweb, which pulls omegaweb-next's
+# manifests at the release it names. See README.md for how a release gets there.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -8,8 +10,8 @@ metadata:
 spec:
     project: default
     source:
-        repoURL: https://github.com/vevcom/omegaweb-next.git
-        path: deploy/overlays/prod
+        repoURL: https://github.com/vevcom/vivat.git
+        path: clusters/prod/omegaweb
         targetRevision: main
     destination:
         server: https://kubernetes.default.svc

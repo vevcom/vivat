@@ -1,0 +1,53 @@
+# omega.ntnu.no and its sites. The release that runs is named twice below, and release.yml in
+# omegaweb-next opens the pull request that moves both: the ref the base is pulled at, and the
+# tag of the two images.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: omegaweb-next
+
+resources:
+    - namespace.yaml
+    - https://github.com/vevcom/omegaweb-next//deploy/base?ref=v26.3.0
+    - database-backup.yaml
+    - phase-secret.yaml
+    - redirect-https.yaml
+
+configMapGenerator:
+    - name: omegaweb-next-sites
+      files:
+          - sites.json
+      # The migrate job in wave -1 mounts it too.
+      options:
+          annotations:
+              argocd.argoproj.io/sync-wave: "-3"
+    # The store keys, STORE_S3_ACCESS_KEY_ID and STORE_S3_SECRET_ACCESS_KEY, come from Phase. The
+    # webmail is the one in clusters/prod/mail: its host is the domain of the accounts that sign in
+    # and the client the app issues tokens to, so it is the same host as there, see README.md.
+    - name: omegaweb-next-config
+      behavior: merge
+      literals:
+          - STORE_S3_ENDPOINT=https://s3.trd1.stack.it.ntnu.no
+          - STORE_S3_BUCKET=argo-prod-bucket
+          - EMAIL_WEBMAIL_URL=https://mail.omega.ntnu.no
+
+images:
+    - name: omegaweb-next
+      newName: ghcr.io/vevcom/omegaweb-next
+      newTag: v26.3.0
+    - name: omegaweb-next-tools
+      newName: ghcr.io/vevcom/omegaweb-next-tools
+      newTag: v26.3.0
+
+patches:
+    - path: ingress-patch.yaml
+    - path: database-patch.yaml
+    # The images are private because the build bakes in NEXT_SERVER_ACTIONS_ENCRYPTION_KEY.
+    # ghcr-pull is created by hand, like phase-service-token.
+    - target:
+          kind: (Deployment|Job)
+      patch: |-
+          - op: add
+            path: /spec/template/spec/imagePullSecrets
+            value:
+                - name: ghcr-pull

@@ -1,0 +1,27 @@
+# Who may reach Stalwart. Port 2525 is the listener omegaweb-next sends its mail through, which
+# asks for no login and relays as any address, so only what runs in omegaweb-next's namespace
+# reaches it. A policy that selects a pod closes everything it does not name, so the ports that
+# stay open to all are named too: mail from the internet, the mail clients, and HTTP for the
+# ingress, the webmail and the provision job.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: stalwart
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/name: stalwart
+    policyTypes:
+        - Ingress
+    ingress:
+        - ports:
+              - port: 25
+              - port: 465
+              - port: 993
+              - port: 8080
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: omegaweb-next
+          ports:
+              - port: 2525

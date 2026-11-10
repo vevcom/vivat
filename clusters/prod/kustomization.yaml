@@ -7,3 +7,4 @@ resources:
     - ../../platform
     - cluster.yaml
     - omegaweb.yaml
+    - mail.yaml

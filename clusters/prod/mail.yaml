@@ -1,0 +1,26 @@
+# Mail for omega.ntnu.no: the overlay in clusters/prod/mail, which pulls mail-infrastructure's
+# manifests at the release it names.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: mail
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: "0"
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/vevcom/vivat.git
+        path: clusters/prod/mail
+        targetRevision: main
+    destination:
+        server: https://kubernetes.default.svc
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        retry:
+            limit: 10
+            backoff:
+                duration: 30s
+                maxDuration: 5m
