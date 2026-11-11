@@ -11,7 +11,7 @@ namespace: mail
 
 resources:
     - namespace.yaml
-    - https://github.com/vevcom/mail-infrastructure//deploy/base?ref=v26.1.0
+    - https://github.com/vevcom/mail-infrastructure//deploy/base?ref=v26.2.0
     - phase-secret.yaml
     - redirect-https.yaml
     - application-listener.yaml
