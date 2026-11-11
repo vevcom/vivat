@@ -144,8 +144,9 @@ receive the alias's mail, signed in with their omegaweb-next account. What that 
 is mail-infrastructure's `deploy/base`; `clusters/prod/mail` is our installation of it.
 `site.ndjson` there is the plan the provision job applies after the base one: the domain, the
 hostname `sanctus.omega.ntnu.no`, the certificate from the files cert-manager writes, NTNU's gateway
-as the relay for outbound mail, the webmail's host as the domain of the accounts, and the
-directory that signs users in through omegaweb-next, see
+as the relay for outbound mail, the webmail's host as the domain of the accounts, the domain of
+the lists the mailboxes forward to, and the directory that signs users in through omegaweb-next,
+see
 [Signing in and mailboxes](#signing-in-and-mailboxes).
 
 ### Secrets
@@ -202,8 +203,10 @@ the domain the signed-in accounts are on (`usernameDomain` and the accounts' dom
 `site.ndjson`), the client omegaweb-next issues the webmail's tokens to (`OAUTH_CLIENT_ID` and
 `acceptedAudiences`), and omegaweb-next's `EMAIL_WEBMAIL_URL` in `clusters/prod/omegaweb`, from
 which it derives all of that. The mailbox of `styret@omega.ntnu.no` is a group at that same
-address, and what forwards its mail is a list on `forward.mail.omega.ntnu.no`, a domain
-omegaweb-next makes on the server and which has no DNS. `site.ndjson` has Stalwart refuse mail
+address, and what forwards its mail is a list on `forward.mail.omega.ntnu.no`, a domain which has
+no DNS. `site.ndjson` adds it to the server, as it does the webmail's host: omegaweb-next looks
+the two up and makes neither, and without one of them it leaves every alias as it is and only
+takes people out of mailboxes they no longer receive. `site.ndjson` also has Stalwart refuse mail
 for that domain from anyone not signed in, so only the copies the mailboxes send on reach those
 lists. mail-infrastructure's base plan has it refuse a mail from someone signed in whose From
 header is not the address it is sent as, so a member of a mailbox answers as that mailbox and as
