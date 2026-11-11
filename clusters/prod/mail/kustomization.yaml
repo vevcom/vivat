@@ -2,8 +2,9 @@
 # release.yml there moves through a pull request, plus everything about this installation. The
 # base plan is applied first, then site.ndjson: the domain, the hostname, the certificate from the
 # files cert-manager writes, NTNU's gateway as the relay, the webmail's host as the domain of the
-# accounts, and the directory that signs users in through omegaweb-next. application-listener.yaml
-# keeps all but omegaweb-next away from the port it sends through.
+# accounts, the domain of the lists the mailboxes forward to, and the directory that signs users in
+# through omegaweb-next. application-listener.yaml keeps all but omegaweb-next away from the port
+# it sends through.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -11,7 +12,7 @@ namespace: mail
 
 resources:
     - namespace.yaml
-    - https://github.com/vevcom/mail-infrastructure//deploy/base?ref=v26.1.0
+    - https://github.com/vevcom/mail-infrastructure//deploy/base?ref=v26.2.0
     - phase-secret.yaml
     - redirect-https.yaml
     - application-listener.yaml
