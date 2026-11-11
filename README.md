@@ -221,43 +221,14 @@ SPF, then hand it to the mail host by name: `sanctus.omega.ntnu.no`, so wherever
 points. That name is Stalwart's own too: its hostname, its admin ui and the name on its
 certificate. They deliver from `129.241.56.0/23`, which is what the security group allows port 25
 from. Outbound mail leaves through `mailgw.ntnu.no`, which relays for NTNU's network by source
-address, so the domain's SPF stays as it is. The records for the move:
+address, so the domain's SPF stays as it is. The records:
 
 ```
 mail.omega.ntnu.no.       A    <node ip>     # the webmail
-sanctus.omega.ntnu.no.    A    <node ip>     # the server's name, and what moves the inbound mail here, last
+sanctus.omega.ntnu.no.    A    <node ip>     # the server's name, which the gateways deliver to
 ```
-
-The server's name is the one the gateways deliver to, so the server has no public name of its own
-before the switch: until the `sanctus` record points here, its certificate cannot be issued, and
-neither its admin ui nor the webmail, whose browser talks to the server by that name, can be
-reached from outside. Before the switch the server is reached from inside the cluster or through
-`kubectl -n mail port-forward svc/stalwart 8080`.
 
 Stalwart signs the mail it sends with DKIM and makes the keys itself. Publish the two
 `_domainkey` TXT records it prints in the domain's zone file, which `stalwart-cli get Domain <id>`
 shows under `dnsZoneFile`, or the admin ui under the domain's DNS records. `_dmarc.omega.ntnu.no`
 already exists at `p=none`.
-
-### Moving the mail off Dokploy
-
-1. **Fill in the TODOs**: the Phase app id in `phase-secret.yaml`, and the first release of
-   mail-infrastructure in `kustomization.yaml`, which its release workflow sets through a pull
-   request once mail-infrastructure's deploy is merged and released.
-2. **Create the hand-made secret**, the Phase service token in the `mail` namespace, as above, and
-   put `STALWART_ADMIN_PASSWORD` in Phase.
-3. **Add the A record** for `mail.`, so the webmail's certificate gets issued, and open port 25
-   from the gateways in the security group.
-4. **Let omegaweb-next manage it**, with the `EMAIL_ADMIN_*` variables above and nothing else yet,
-   and check through a port-forward to Stalwart's admin ui that a mailbox and a list per alias
-   appear within a minute. The app keeps sending through Postfix.
-5. **Try it**: send a mail to an alias straight at the node, `swaks --server <node ip> --to
-   <alias>@omega.ntnu.no`, from a machine the security group allows, and see it forwarded.
-6. **Switch**: move the A record of `sanctus.omega.ntnu.no` to the node, then stop the Postfix
-   stack on Dokploy. The gateways remember a recipient they could not deliver to for a few hours,
-   so do it when no alias is being edited. The server's certificate is issued once the record
-   has moved.
-7. **Send through it**: once the certificate is there, set the other `EMAIL_*` variables above
-   and restart the app. Sign in to the webmail with your own account and find a mail in the
-   alias's mailbox.
-8. **Delete `postfix/`** in mail-infrastructure.
