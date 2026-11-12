@@ -8,7 +8,7 @@ namespace: omegaweb-next
 
 resources:
     - namespace.yaml
-    - https://github.com/vevcom/omegaweb-next//deploy/base?ref=v26.3.4
+    - https://github.com/vevcom/omegaweb-next//deploy/base?ref=v26.4.0
     - database-backup.yaml
     - phase-secret.yaml
     - redirect-https.yaml
@@ -34,10 +34,10 @@ configMapGenerator:
 images:
     - name: omegaweb-next
       newName: ghcr.io/vevcom/omegaweb-next
-      newTag: v26.3.4
+      newTag: v26.4.0
     - name: omegaweb-next-tools
       newName: ghcr.io/vevcom/omegaweb-next-tools
-      newTag: v26.3.4
+      newTag: v26.4.0
 
 patches:
     - path: ingress-patch.yaml
