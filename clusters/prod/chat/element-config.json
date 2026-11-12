@@ -8,6 +8,7 @@
     "disable_custom_urls": true,
     "disable_guests": true,
     "disable_3pid_login": true,
+    "force_verification": false,
     "brand": "Omega chat",
     "default_country_code": "NO",
     "room_directory": { "servers": ["chat.omega.ntnu.no"] },
