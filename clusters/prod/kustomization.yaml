@@ -8,3 +8,4 @@ resources:
     - cluster.yaml
     - omegaweb.yaml
     - mail.yaml
+    - chat.yaml

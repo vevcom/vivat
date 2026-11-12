@@ -1,0 +1,92 @@
+# Chat for omega.ntnu.no: chat-infrastructure's base at the release named in the ref, which
+# release.yml there moves through a pull request, plus everything about this installation: the
+# three hosts, the site files of Synapse and MAS, which homeserver the client is for, and the
+# secrets from Phase. admin-api.yaml keeps all but omegaweb-next away from MAS's admin api.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: chat
+
+resources:
+    - namespace.yaml
+    # TODO: the first release of chat-infrastructure, once it is published.
+    - https://github.com/vevcom/chat-infrastructure//deploy/base?ref=main
+    - phase-secret.yaml
+    - redirect-https.yaml
+    - admin-api.yaml
+
+configMapGenerator:
+    # The server name is chat.omega.ntnu.no, which is in every user id and can never change, see
+    # README.md. The three files below name it, and the hosts Synapse and MAS are reached at.
+    - name: synapse-site
+      behavior: replace
+      files:
+          - site.yaml=synapse-site.yaml
+    - name: mas-site
+      behavior: replace
+      files:
+          - site.yaml=mas-site.yaml
+    - name: element-config
+      behavior: replace
+      files:
+          - config.json=element-config.json
+    # What the application service registration is rendered with. omegaweb-next takes no events
+    # from Synapse yet, so there is no CHAT_APPSERVICE_URL.
+    - name: synapse-registration
+      behavior: merge
+      literals:
+          - CHAT_SERVER_NAME=chat.omega.ntnu.no
+
+patches:
+    # The client, which is also the server name's host: Synapse answers /.well-known/matrix on it.
+    - target:
+          kind: Ingress
+          name: element
+      patch: |-
+          - op: replace
+            path: /spec/rules/0/host
+            value: chat.omega.ntnu.no
+          - op: add
+            path: /spec/tls
+            value:
+                - hosts: [chat.omega.ntnu.no]
+                  secretName: element-tls
+          - op: add
+            path: /metadata/annotations
+            value:
+                cert-manager.io/cluster-issuer: letsencrypt
+                traefik.ingress.kubernetes.io/router.middlewares: chat-redirect-https@kubernetescrd
+    - target:
+          kind: Ingress
+          name: synapse
+      patch: |-
+          - op: replace
+            path: /spec/rules/0/host
+            value: matrix.chat.omega.ntnu.no
+          - op: add
+            path: /spec/tls
+            value:
+                - hosts: [matrix.chat.omega.ntnu.no]
+                  secretName: synapse-tls
+          - op: add
+            path: /metadata/annotations
+            value:
+                cert-manager.io/cluster-issuer: letsencrypt
+                traefik.ingress.kubernetes.io/router.middlewares: chat-redirect-https@kubernetescrd
+    - target:
+          kind: Ingress
+          name: mas
+      patch: |-
+          - op: replace
+            path: /spec/rules/0/host
+            value: account.chat.omega.ntnu.no
+          - op: add
+            path: /spec/tls
+            value:
+                - hosts: [account.chat.omega.ntnu.no]
+                  secretName: mas-tls
+          - op: add
+            path: /metadata/annotations
+            value:
+                cert-manager.io/cluster-issuer: letsencrypt
+                traefik.ingress.kubernetes.io/router.middlewares: chat-redirect-https@kubernetescrd

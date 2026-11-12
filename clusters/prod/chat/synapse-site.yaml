@@ -1,0 +1,11 @@
+# What is this installation's own of Synapse's config, beside chat-infrastructure's homeserver.yaml.
+
+# The part after the colon in every user id and room id. It can never change, see README.md.
+server_name: chat.omega.ntnu.no
+public_baseurl: https://matrix.chat.omega.ntnu.no/
+
+# Only omegaweb-next's bot creates spaces, and no room is encrypted, see chat-infrastructure.
+modules:
+    - module: omegaweb_rules.OmegawebRules
+      config:
+          space_creator: "@omegaweb:chat.omega.ntnu.no"

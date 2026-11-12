@@ -8,7 +8,8 @@ to this repo, and Argo CD applies what `main` says.
 clusters/
 ├── prod/           # The production cluster: root app, cluster resources and one overlay per service
 │   ├── omegaweb/   # omega.ntnu.no and its sites: domains, certificate, backups, Phase secrets, S3 store
-│   └── mail/       # Mail for omega.ntnu.no: Stalwart and the webmail, the relay, the certificate
+│   ├── mail/       # Mail for omega.ntnu.no: Stalwart and the webmail, the relay, the certificate
+│   └── chat/       # Chat for omega.ntnu.no: Synapse, MAS and the client, the hosts, the Phase secrets
 └── local/          # A k3d cluster on a workstation, for trying changes first
 platform/           # Operators the services depend on: cert-manager, CloudNativePG, Phase
 cluster/            # Cluster-wide resources such as the Let's Encrypt issuer
@@ -26,6 +27,7 @@ service points at the service's overlay.
 |---|---|---|---|
 | omegaweb | [omegaweb-next](https://github.com/vevcom/omegaweb-next) | `clusters/prod/omegaweb` | `omegaweb-next` |
 | mail | [mail-infrastructure](https://github.com/vevcom/mail-infrastructure) | `clusters/prod/mail` | `mail` |
+| chat | [chat-infrastructure](https://github.com/vevcom/chat-infrastructure) | `clusters/prod/chat` | `chat` |
 
 Applications sync in waves: the operators and cluster resources in wave -1, the services in
 wave 0. Within a service, its own manifests decide the order, for example the database before
@@ -235,3 +237,62 @@ Stalwart signs the mail it sends with DKIM and makes the keys itself. Publish th
 `_domainkey` TXT records it prints in the domain's zone file, which `stalwart-cli get Domain <id>`
 shows under `dnsZoneFile`, or the admin ui under the domain's DNS records. `_dmarc.omega.ntnu.no`
 already exists at `p=none`.
+
+## chat
+
+A [Matrix](https://matrix.org) homeserver whose users sign in with their omegaweb-next account,
+and whose spaces omegaweb-next decides: [Synapse](https://github.com/element-hq/synapse), MAS,
+which signs users in to it, and the Element Web client at `chat.omega.ntnu.no`. What that is in
+Kubernetes is chat-infrastructure's `deploy/base`; `clusters/prod/chat` is our installation of it:
+the three hosts, the site files of Synapse and MAS, which homeserver the client is for, and the
+secrets.
+
+| Host | What |
+|---|---|
+| `chat.omega.ntnu.no` | The client. Also the server name, so Synapse answers `/.well-known/matrix` on it |
+| `matrix.chat.omega.ntnu.no` | Synapse, as clients reach it |
+| `account.chat.omega.ntnu.no` | MAS, where users are sent to sign in |
+
+The server name is `chat.omega.ntnu.no`, so a user is `@<name>:chat.omega.ntnu.no`. It is in every
+user id and room id and can never change: a homeserver with another name is another, empty
+homeserver. The two other hosts can be moved, by changing them here and in DNS.
+
+### Secrets
+
+The chat app in Phase holds the keys chat-infrastructure's README lists for `chat-env`, which the
+operator writes as set up in `phase-secret.yaml`:
+
+| Key | Made with |
+|---|---|
+| `SYNAPSE_MACAROON_SECRET`, `SYNAPSE_FORM_SECRET`, `MAS_SHARED_SECRET` | `openssl rand -base64 32`, one each |
+| `MAS_ENCRYPTION_SECRET` | `openssl rand -hex 32`. It can never change |
+| `MAS_SIGNING_KEY` | `openssl genrsa 2048`, the whole PEM with its line breaks |
+| `CHAT_AS_TOKEN`, `CHAT_HS_TOKEN`, `CHAT_MAS_CLIENT_SECRET` | `openssl rand -base64 32`, one each |
+
+The last three are omegaweb-next's too, which acts on the homeserver with them, so they are in the
+omegaweb app in Phase under the same names, with the same values. The database's password is in
+neither: CloudNativePG makes it. `phase-service-token` is created by hand in the `chat` namespace,
+as for the other services, see [Setting up a cluster](#setting-up-a-cluster).
+
+### Signing in
+
+MAS takes no password. It signs users in through omegaweb-next, the OpenID Connect provider on
+`login.omega.ntnu.no`, as a client named by its own host. That host is in three places that must
+agree: `client_id` and `public_base` in `mas-site.yaml`, the `mas` ingress, and `CHAT_AUTH_URL` in
+`clusters/prod/omegaweb`, by which omegaweb-next knows the client. A user's account is made the
+first time they sign in, as what omegaweb-next says they are called on the homeserver.
+
+`admin-api.yaml` lets only omegaweb-next's namespace reach MAS's admin api, port 8081 of the `mas`
+service, which no ingress publishes. omegaweb-next reaches Synapse at `synapse.chat:8008` and that
+api at `mas.chat:8081`.
+
+### DNS
+
+```
+chat.omega.ntnu.no.            A    <node ip>     # the client, and the server name
+matrix.chat.omega.ntnu.no.     A    <node ip>     # Synapse
+account.chat.omega.ntnu.no.    A    <node ip>     # MAS
+```
+
+cert-manager issues a certificate per host once its record points here. The homeserver talks to no
+other homeserver, so it needs no SRV record and no port beside 443.
