@@ -33,6 +33,8 @@ configMapGenerator:
           # The chat's sign in is the one in clusters/prod/chat: its host is the client the app issues
           # tokens to, so it is the same host as there, see README.md.
           - CHAT_AUTH_URL=https://account.chat.omega.ntnu.no
+          # The chat client, which a user's chat page links to.
+          - CHAT_CLIENT_URL=https://chat.omega.ntnu.no
 
 images:
     - name: omegaweb-next
