@@ -284,7 +284,16 @@ first time they sign in, as what omegaweb-next says they are called on the homes
 
 `admin-api.yaml` lets only omegaweb-next's namespace reach MAS's admin api, port 8081 of the `mas`
 service, which no ingress publishes. omegaweb-next reaches Synapse at `synapse.chat:8008` and that
-api at `mas.chat:8081`.
+api at `mas.chat:8081`, which `clusters/prod/omegaweb` names as `CHAT_HOMESERVER_URL` and
+`CHAT_MAS_URL`, beside the server name as `CHAT_SERVER_NAME`.
+
+### Notifications
+
+omegaweb-next makes its notifications for the chat from what Synapse tells it. Synapse sends every
+event to `CHAT_APPSERVICE_URL` in `clusters/prod/chat`, which is omegaweb-next at
+`omegaweb-next.omegaweb-next`, inside the cluster and through no ingress, signed with
+`CHAT_HS_TOKEN`. omegaweb-next answers that one path for any host. `CHAT_CLIENT_URL` in
+`clusters/prod/omegaweb` is the client, which omegaweb-next links its users to.
 
 ### DNS
 

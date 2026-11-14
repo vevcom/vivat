@@ -30,12 +30,14 @@ configMapGenerator:
       behavior: replace
       files:
           - config.json=element-config.json
-    # What the application service registration is rendered with. omegaweb-next takes no events
-    # from Synapse yet, so there is no CHAT_APPSERVICE_URL.
+    # What the application service registration is rendered with. Synapse sends every event to
+    # omegaweb-next, which makes the notifications for the chat from them, at its address inside
+    # the cluster: it answers there for any host, and the token it checks is CHAT_HS_TOKEN.
     - name: synapse-registration
       behavior: merge
       literals:
           - CHAT_SERVER_NAME=chat.omega.ntnu.no
+          - CHAT_APPSERVICE_URL=http://omegaweb-next.omegaweb-next/api/chat/appservice
 
 patches:
     # The client, which is also the server name's host: Synapse answers /.well-known/matrix on it.
