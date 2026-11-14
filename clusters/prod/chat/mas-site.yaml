@@ -1,0 +1,45 @@
+# What is this installation's own of MAS's config, beside chat-infrastructure's config.yaml.
+
+http:
+    # Where the browser reaches MAS, which is also the issuer of its tokens.
+    public_base: https://account.chat.omega.ntnu.no/
+
+matrix:
+    homeserver: chat.omega.ntnu.no
+
+# omegaweb-next as a client of MAS's admin api, which it signs in to with CHAT_MAS_CLIENT_SECRET
+# and no user.
+clients:
+    - client_id: 0000000000000000000MEGAWEB
+      client_auth_method: client_secret_basic
+      client_secret_file: /secrets/mas-client-secret
+
+policy:
+    data:
+        admin_clients:
+            - 0000000000000000000MEGAWEB
+
+# omegaweb-next as the one provider MAS signs users in through: the OpenID Connect provider on its
+# auth domain, where MAS is a client named by its own host, which is omegaweb-next's CHAT_AUTH_URL,
+# see clusters/prod/omegaweb. The first sign in makes the account, by the user's name and the
+# claim chat_localpart, which is what omegaweb-next has decided the user is called here.
+upstream_oauth2:
+    providers:
+        - id: 000000000000000000000VEVEN
+          human_name: Omegaweb
+          issuer: https://login.omega.ntnu.no
+          client_id: account.chat.omega.ntnu.no
+          token_endpoint_auth_method: none
+          pkce_method: always
+          id_token_signed_response_alg: ES256
+          scope: openid profile chat
+          claims_imports:
+              localpart:
+                  action: require
+                  template: "{{ user.chat_localpart }}"
+              displayname:
+                  action: force
+                  template: "{{ user.name }}"
+              # The homeserver has no use for where a user is reached, so it is not told.
+              email:
+                  action: ignore

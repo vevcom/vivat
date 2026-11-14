@@ -30,6 +30,18 @@ configMapGenerator:
           - STORE_S3_ENDPOINT=https://s3.trd1.stack.it.ntnu.no
           - STORE_S3_BUCKET=argo-prod-bucket
           - EMAIL_WEBMAIL_URL=https://mail.omega.ntnu.no
+          # The chat's sign in is the one in clusters/prod/chat: its host is the client the app issues
+          # tokens to, so it is the same host as there, see README.md.
+          - CHAT_AUTH_URL=https://account.chat.omega.ntnu.no
+          # The chat client, which a user's chat page links to.
+          - CHAT_CLIENT_URL=https://chat.omega.ntnu.no
+          # The homeserver in clusters/prod/chat, as the worker reaches it inside the cluster to keep
+          # its accounts and spaces in step. The three secrets that go with these come from Phase,
+          # and the chat has the same values: CHAT_AS_TOKEN, CHAT_MAS_CLIENT_SECRET, and
+          # CHAT_HS_TOKEN, which Synapse signs the events it sends the app with.
+          - CHAT_HOMESERVER_URL=http://synapse.chat:8008
+          - CHAT_SERVER_NAME=chat.omega.ntnu.no
+          - CHAT_MAS_URL=http://mas.chat:8081
 
 images:
     - name: omegaweb-next

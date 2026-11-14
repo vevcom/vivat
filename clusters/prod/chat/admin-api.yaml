@@ -1,0 +1,23 @@
+# Who may reach MAS. Port 8081 is its admin api, which deactivates accounts and hands out admin
+# access to Synapse, so only what runs in omegaweb-next's namespace reaches it. A policy that
+# selects a pod closes everything it does not name, so the port that stays open to all is named
+# too: 8080, for the ingress and for Synapse.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: mas
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/name: mas
+    policyTypes:
+        - Ingress
+    ingress:
+        - ports:
+              - port: 8080
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: omegaweb-next
+          ports:
+              - port: 8081

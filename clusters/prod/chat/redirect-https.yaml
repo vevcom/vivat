@@ -1,0 +1,10 @@
+# Applied to the ingresses below. cert-manager's HTTP challenge is still answered on port 80: it
+# comes in on its own ingress, which has no middleware.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+    name: redirect-https
+spec:
+    redirectScheme:
+        scheme: https
+        permanent: true
