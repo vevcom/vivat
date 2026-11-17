@@ -9,8 +9,7 @@ namespace: chat
 
 resources:
     - namespace.yaml
-    # TODO: the first release of chat-infrastructure, once it is published.
-    - https://github.com/vevcom/chat-infrastructure//deploy/base?ref=main
+    - https://github.com/vevcom/chat-infrastructure//deploy/base?ref=v26.1.0
     - phase-secret.yaml
     - redirect-https.yaml
     - admin-api.yaml
