@@ -14,6 +14,8 @@ spec:
               - www.omega.ntnu.no
               - contactor.omega.ntnu.no
               - www.contactor.omega.ntnu.no
+              - omegarevyen.no
+              - www.omegarevyen.no
               - revyen.omega.ntnu.no
               - www.revyen.omega.ntnu.no
               - login.omega.ntnu.no
@@ -50,6 +52,26 @@ spec:
                             port:
                                 name: http
         - host: www.contactor.omega.ntnu.no
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: omegaweb-next
+                            port:
+                                name: http
+        - host: omegarevyen.no
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: omegaweb-next
+                            port:
+                                name: http
+        - host: www.omegarevyen.no
           http:
               paths:
                   - path: /
