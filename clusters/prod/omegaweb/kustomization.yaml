@@ -35,6 +35,9 @@ configMapGenerator:
           - CHAT_AUTH_URL=https://account.chat.omega.ntnu.no
           # The chat client, which a user's chat page links to.
           - CHAT_CLIENT_URL=https://chat.omega.ntnu.no
+          # The homeserver as browsers reach it, which is Synapse's host in clusters/prod/chat. The
+          # chat pages sign the user's browser in to it, see README.md.
+          - CHAT_HOMESERVER_PUBLIC_URL=https://matrix.chat.omega.ntnu.no
           # The homeserver in clusters/prod/chat, as the worker reaches it inside the cluster to keep
           # its accounts and spaces in step. The three secrets that go with these come from Phase,
           # and the chat has the same values: CHAT_AS_TOKEN, CHAT_MAS_CLIENT_SECRET, and

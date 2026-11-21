@@ -7,12 +7,21 @@ http:
 matrix:
     homeserver: chat.omega.ntnu.no
 
-# omegaweb-next as a client of MAS's admin api, which it signs in to with CHAT_MAS_CLIENT_SECRET
-# and no user.
 clients:
+    # omegaweb-next as a client of MAS's admin api, which it signs in to with
+    # CHAT_MAS_CLIENT_SECRET and no user.
     - client_id: 0000000000000000000MEGAWEB
       client_auth_method: client_secret_basic
       client_secret_file: /secrets/mas-client-secret
+    # omegaweb-next's chat pages, which sign the user's browser in: a client with PKCE and no
+    # secret, which MAS sends back to this one address. Its host is the main domain of Omega's
+    # site in clusters/prod/omegaweb/sites.json.
+    - client_id: 000000000000000000MEGACHAT
+      client_auth_method: none
+      client_name: Omegaweb
+      client_uri: https://omega.ntnu.no/
+      redirect_uris:
+          - https://omega.ntnu.no/chat/sign-in
 
 policy:
     data:
