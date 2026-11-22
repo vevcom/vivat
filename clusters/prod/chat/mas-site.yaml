@@ -42,6 +42,9 @@ upstream_oauth2:
           pkce_method: always
           id_token_signed_response_alg: ES256
           scope: openid profile chat
+          # When omegaweb-next says a session of its provider has ended, MAS ends its own session
+          # in that browser and every session of a client that was started in it.
+          on_backchannel_logout: logout_all
           claims_imports:
               localpart:
                   action: require

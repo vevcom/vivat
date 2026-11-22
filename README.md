@@ -294,6 +294,27 @@ service, which no ingress publishes. omegaweb-next reaches Synapse at `synapse.c
 api at `mas.chat:8081`, which `clusters/prod/omegaweb` names as `CHAT_HOMESERVER_URL` and
 `CHAT_MAS_URL`, beside the server name as `CHAT_SERVER_NAME`.
 
+### Signing out
+
+MAS keeps a session of its own in the browser, which a logout from omegaweb-next would outlive. So
+omegaweb-next tells MAS when a session of its provider ends, at
+`mas.chat:8081/upstream/backchannel-logout/000000000000000000000VEVEN`, where the id is the
+provider's in `mas-site.yaml`. With `on_backchannel_logout: logout_all` there, MAS ends its own
+session in that browser and every chat session started in it, their devices included. A chat app
+that signed in through that browser is among them: logging out of omegaweb-next in a phone's
+browser also ends a chat app on that phone that signed in through that browser, which is reasoned
+from how such an app signs in and was not tried with a phone. What was started in the user's other
+browsers stays signed in.
+
+MAS serves that address on port 8081 from the chat-infrastructure release that puts its pages for
+browsers on the internal listener. On an earlier base it answers 404 there: omegaweb-next logs
+the user out all the same and MAS's session lives on. Nothing breaks then, but omegaweb-next logs
+an error at every logout it tells MAS of, until MAS has the listener. So that base is released
+before omegaweb-next's sign-out.
+
+The sessions MAS holds from before omegaweb-next named its sessions are left alone. No logout
+reaches them, and they live until they are ended in MAS.
+
 ### Notifications
 
 omegaweb-next makes its notifications for the chat from what Synapse tells it. Synapse sends every
