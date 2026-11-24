@@ -282,6 +282,13 @@ agree: `client_id` and `public_base` in `mas-site.yaml`, the `mas` ingress, and 
 `clusters/prod/omegaweb`, by which omegaweb-next knows the client. A user's account is made the
 first time they sign in, as what omegaweb-next says they are called on the homeserver.
 
+omegaweb-next's chat pages, at `omega.ntnu.no/chat`, sign the user's browser in to the homeserver
+as a client of MAS: `000000000000000000MEGACHAT` in `mas-site.yaml`, which has no secret. MAS sends
+the browser back to `https://omega.ntnu.no/chat/sign-in` alone. Its host is the main domain of
+Omega's site in `clusters/prod/omegaweb/sites.json`, and the two must agree. The pages reach
+Synapse at `CHAT_HOMESERVER_PUBLIC_URL` in `clusters/prod/omegaweb`, which is its host in the table
+above, and ask it where MAS is.
+
 `admin-api.yaml` lets only omegaweb-next's namespace reach MAS's admin api, port 8081 of the `mas`
 service, which no ingress publishes. omegaweb-next reaches Synapse at `synapse.chat:8008` and that
 api at `mas.chat:8081`, which `clusters/prod/omegaweb` names as `CHAT_HOMESERVER_URL` and
